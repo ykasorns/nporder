@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>สั่งอาหาร</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #fef9f0;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #e65c00;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    /* Name input step */
+    #name-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 70px);
+      padding: 20px;
+    }
+
+    #name-step h2 { font-size: 1.3rem; margin-bottom: 16px; color: #555; }
+
+    #name-input {
+      font-size: 1.1rem;
+      padding: 12px 18px;
+      border: 2px solid #e65c00;
+      border-radius: 10px;
+      width: 280px;
+      text-align: center;
+      outline: none;
+    }
+
+    #name-input:focus { border-color: #ff8c00; box-shadow: 0 0 0 3px rgba(230,92,0,0.15); }
+
+    #confirm-name-btn {
+      margin-top: 16px;
+      padding: 12px 36px;
+      background: #e65c00;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #confirm-name-btn:hover { background: #c74f00; }
+
+    /* Menu step */
+    #menu-step { display: none; padding: 20px; }
+
+    #greeting {
+      text-align: center;
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+      color: #555;
+    }
+    #greeting span { color: #e65c00; font-weight: bold; }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto 24px;
+    }
+
+    .menu-card {
+      background: white;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      position: relative;
+      user-select: none;
+    }
+    .menu-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+    .menu-card.selected { outline: 3px solid #e65c00; }
+
+    .menu-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+    }
+
+    .menu-card .name {
+      padding: 10px;
+      font-size: 0.85rem;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .qty-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 10px 10px;
+    }
+    .qty-control button {
+      width: 28px; height: 28px;
+      border: 2px solid #e65c00;
+      border-radius: 50%;
+      background: white;
+      color: #e65c00;
+      font-size: 1.1rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: background 0.1s;
+    }
+    .qty-control button:hover { background: #e65c00; color: white; }
+    .qty-control .qty { font-size: 1rem; min-width: 20px; text-align: center; }
+
+    .check-badge {
+      display: none;
+      position: absolute;
+      top: 8px; right: 8px;
+      background: #e65c00;
+      color: white;
+      border-radius: 50%;
+      width: 26px; height: 26px;
+      font-size: 0.9rem;
+      align-items: center;
+      justify-content: center;
+    }
+    .menu-card.selected .check-badge { display: flex; }
+
+    /* Cart summary */
+    #cart-summary {
+      max-width: 900px;
+      margin: 0 auto 16px;
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    #cart-summary h3 { font-size: 1rem; margin-bottom: 10px; color: #e65c00; }
+    #cart-items { font-size: 0.9rem; color: #555; }
+    #cart-items li { padding: 3px 0; }
+
+    .note-row {
+      max-width: 900px;
+      margin: 0 auto 16px;
+    }
+    #note-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      resize: vertical;
+      font-family: inherit;
+    }
+    #note-input:focus { outline: none; border-color: #e65c00; }
+
+    #submit-btn {
+      display: block;
+      margin: 0 auto 40px;
+      padding: 14px 48px;
+      background: #e65c00;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #submit-btn:hover { background: #c74f00; }
+    #submit-btn:disabled { background: #bbb; cursor: not-allowed; }
+
+    /* Success */
+    #success-step {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 70px);
+      padding: 20px;
+      text-align: center;
+    }
+    #success-step .icon { font-size: 4rem; margin-bottom: 16px; }
+    #success-step h2 { font-size: 1.4rem; color: #e65c00; margin-bottom: 8px; }
+    #success-step p { color: #666; margin-bottom: 24px; }
+    #order-again-btn {
+      padding: 12px 32px;
+      background: #e65c00;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    #order-again-btn:hover { background: #c74f00; }
+
+    .loading { opacity: 0.6; pointer-events: none; }
+  </style>
+</head>
+<body>
+
+<header>🍽️ สั่งอาหาร</header>
+
+<!-- Step 1: Enter name -->
+<div id="name-step">
+  <h2>กรุณาระบุชื่อของคุณ</h2>
+  <input id="name-input" type="text" placeholder="ชื่อ-นามสกุล" autocomplete="off" />
+  <button id="confirm-name-btn" onclick="confirmName()">ต่อไป →</button>
+</div>
+
+<!-- Step 2: Menu -->
+<div id="menu-step">
+  <p id="greeting">สวัสดี, <span id="user-name-display"></span> 👋 เลือกเมนูที่ต้องการ</p>
+
+  <div class="menu-grid" id="menu-grid"></div>
+
+  <div id="cart-summary" style="display:none">
+    <h3>🛒 รายการที่เลือก</h3>
+    <ul id="cart-items"></ul>
+  </div>
+
+  <div class="note-row">
+    <textarea id="note-input" rows="2" placeholder="หมายเหตุ / ขอพิเศษ (ถ้ามี)"></textarea>
+  </div>
+
+  <button id="submit-btn" onclick="submitOrder()">ยืนยันการสั่ง</button>
+</div>
+
+<!-- Step 3: Success -->
+<div id="success-step">
+  <div class="icon">✅</div>
+  <h2>สั่งอาหารสำเร็จ!</h2>
+  <p id="success-msg"></p>
+  <button id="order-again-btn" onclick="orderAgain()">สั่งอาหารอีกครั้ง</button>
+</div>
+
+<script>
+  // ===== CONFIG =====
+  // วาง URL ของ Google Apps Script ที่นี่
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby08LM_CML5rTd3EGvxJVXMnoxUZt6B1Yy7RB6hm-hqArsoWmXgZy9GgrN7QHAlEPZE/exec';
+
+  // รายการเมนูและชื่อไฟล์รูปใน folder picture/
+  const MENUS = [
+    { name: 'ข้าวกะเพราไก่ไข่นุ่ม',               img: 'picture/ข้าวกะเพราไก่ไข่นุ่ม.jpg' },
+    { name: 'ข้าวผัดน้ำพริกกุ้งจัมโบ้',            img: 'picture/ข้าวผัดน้ำพริกกุ้งจัมโบ้.jpg' },
+    { name: 'ข้าวผัดปู',                            img: 'picture/ข้าวผัดปู.jpg' },
+    { name: 'ข้าวผัดอเมริกัน',                      img: 'picture/ข้าวผัดอเมริกัน.jpg' },
+    { name: 'ข้าวหน้าไก่ย่างเทอริยากิ',            img: 'picture/ข้าวหน้าไก่ย่างเทอริยากิ.jpg' },
+    { name: 'ข้าวหมูทอดกระเทียมพริกไทยไข่นุ่ม',   img: 'picture/ข้าวหมูทอดกระเทียมพริกไทยไข่นุ่ม.jpg' },
+    { name: 'ข้าวไก่อบ',                            img: 'picture/ข้าวไก่อบ.jpg' },
+    { name: 'เส้นจันท์ผัดไทยกุ้งสด',               img: 'picture/เส้นจันท์ผัดไทยกุ้งสด.jpg' },
+  ];
+  // ==================
+
+  let currentUser = '';
+  const cart = {}; // { menuName: qty }
+
+  // Build menu cards
+  function buildMenu() {
+    const grid = document.getElementById('menu-grid');
+    grid.innerHTML = '';
+    MENUS.forEach(m => {
+      cart[m.name] = 0;
+      const card = document.createElement('div');
+      card.className = 'menu-card';
+      card.id = 'card-' + encodeURIComponent(m.name);
+      card.innerHTML = `
+        <span class="check-badge">✓</span>
+        <img src="${m.img}" alt="${m.name}" loading="lazy" />
+        <div class="name">${m.name}</div>
+        <div class="qty-control">
+          <button onclick="changeQty('${m.name}', -1, event)">−</button>
+          <span class="qty" id="qty-${encodeURIComponent(m.name)}">0</span>
+          <button onclick="changeQty('${m.name}', 1, event)">+</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function changeQty(name, delta, event) {
+    event.stopPropagation();
+    cart[name] = Math.max(0, (cart[name] || 0) + delta);
+    document.getElementById('qty-' + encodeURIComponent(name)).textContent = cart[name];
+    const card = document.getElementById('card-' + encodeURIComponent(name));
+    if (cart[name] > 0) card.classList.add('selected');
+    else card.classList.remove('selected');
+    updateCartSummary();
+  }
+
+  function updateCartSummary() {
+    const items = Object.entries(cart).filter(([, q]) => q > 0);
+    const summary = document.getElementById('cart-summary');
+    const list = document.getElementById('cart-items');
+    if (items.length === 0) {
+      summary.style.display = 'none';
+      return;
+    }
+    summary.style.display = 'block';
+    list.innerHTML = items.map(([n, q]) => `<li>• ${n} × ${q}</li>`).join('');
+  }
+
+  function confirmName() {
+    const val = document.getElementById('name-input').value.trim();
+    if (!val) { alert('กรุณาระบุชื่อก่อนสั่งอาหาร'); return; }
+    currentUser = val;
+    document.getElementById('user-name-display').textContent = val;
+    document.getElementById('name-step').style.display = 'none';
+    document.getElementById('menu-step').style.display = 'block';
+    buildMenu();
+  }
+
+  document.getElementById('name-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') confirmName();
+  });
+
+  async function submitOrder() {
+    const items = Object.entries(cart).filter(([, q]) => q > 0);
+    if (items.length === 0) { alert('กรุณาเลือกเมนูอย่างน้อย 1 รายการ'); return; }
+
+    const note = document.getElementById('note-input').value.trim();
+    const timestamp = new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
+    const orderText = items.map(([n, q]) => `${n} x${q}`).join(', ');
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'กำลังบันทึก…';
+
+    const payload = {
+      name: currentUser,
+      order: orderText,
+      note: note,
+      timestamp: timestamp
+    };
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      console.error('Fetch error', e);
+    }
+
+    document.getElementById('menu-step').style.display = 'none';
+    const successStep = document.getElementById('success-step');
+    successStep.style.display = 'flex';
+    document.getElementById('success-msg').textContent =
+      `${currentUser} สั่ง: ${orderText}${note ? ' (หมายเหตุ: ' + note + ')' : ''}`;
+  }
+
+  function orderAgain() {
+    // Reset
+    currentUser = '';
+    Object.keys(cart).forEach(k => cart[k] = 0);
+    document.getElementById('name-input').value = '';
+    document.getElementById('note-input').value = '';
+    document.getElementById('submit-btn').disabled = false;
+    document.getElementById('submit-btn').textContent = 'ยืนยันการสั่ง';
+    document.getElementById('success-step').style.display = 'none';
+    document.getElementById('name-step').style.display = 'flex';
+  }
+</script>
+
+</body>
+</html>
